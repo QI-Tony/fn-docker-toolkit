@@ -23,6 +23,10 @@ def test_all_pages_render(tmp_path: Path) -> None:
         assert response.status_code == 200
         assert "NAS Toolbox" in response.text
 
+    stylesheet = client.get("/static/style.css")
+    assert stylesheet.status_code == 200
+    assert stylesheet.headers["content-type"].startswith("text/css")
+
 
 def test_empty_directory_api_requires_scan_token_for_delete(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings((tmp_path,))))

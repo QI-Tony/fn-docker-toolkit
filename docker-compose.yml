@@ -7,6 +7,7 @@ services:
       - "17701:17701"
     volumes:
       - /mnt:/mnt
+      - /vol2:/vol2
     environment:
-      - ALLOWED_ROOTS=/mnt
+      - ALLOWED_ROOTS=/mnt,/vol2
       - TZ=Asia/Shanghai
