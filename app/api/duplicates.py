@@ -1,13 +1,15 @@
 from fastapi import APIRouter, HTTPException, Request
 
-from app.api.schemas import DuplicateDeleteRequest, ScanRequest
+from app.api.schemas import DuplicateDeleteRequest, DuplicateScanRequest
 from app.services.duplicates import (
     DuplicateScan,
+    STRATEGY_LABELS,
     delete_duplicate_files,
     duplicate_group_id,
     scan_duplicate_files,
 )
 from app.services.scan_registry import ScanRegistry
+from app.utils.audio import AudioToolError
 from app.utils.filesystem import PathValidationError
 
 
@@ -16,25 +18,41 @@ registry: ScanRegistry[DuplicateScan] = ScanRegistry()
 
 
 @router.post("/scan")
-def scan(payload: ScanRequest, request: Request) -> dict[str, object]:
+def scan(payload: DuplicateScanRequest, request: Request) -> dict[str, object]:
     try:
-        result = scan_duplicate_files(payload.path, request.app.state.settings.allowed_roots)
+        result = scan_duplicate_files(
+            payload.path,
+            request.app.state.settings.allowed_roots,
+            payload.strategy,
+        )
     except PathValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except AudioToolError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     token = registry.put(result)
     return {
         "scan_token": token,
         "root": str(result.root),
+        "strategy": result.strategy.value,
+        "strategy_label": STRATEGY_LABELS[result.strategy],
         "scanned_files": result.scanned_files,
+        "analyzed_files": result.analyzed_files,
         "duplicate_groups": len(result.groups),
         "duplicate_files": result.duplicate_files,
         "reclaimable_bytes": result.reclaimable_bytes,
         "groups": [
             {
                 "id": duplicate_group_id(group),
+                "strategy": group.strategy.value,
                 "size": group.size,
                 "md5": group.md5,
-                "files": [str(file.path) for file in group.files],
+                "detail": group.detail,
+                "confidence": group.confidence,
+                "reclaimable_bytes": group.reclaimable_bytes,
+                "files": [
+                    {"path": str(file.path), "size": file.size}
+                    for file in group.files
+                ],
             }
             for group in result.groups
         ],

@@ -36,3 +36,25 @@ def test_empty_directory_api_requires_scan_token_for_delete(tmp_path: Path) -> N
     )
 
     assert response.status_code == 409
+
+
+def test_duplicate_api_supports_filename_strategy(tmp_path: Path) -> None:
+    first = tmp_path / "one" / "same.txt"
+    second = tmp_path / "two" / "same.txt"
+    first.parent.mkdir()
+    second.parent.mkdir()
+    first.write_text("first", encoding="utf-8")
+    second.write_text("second", encoding="utf-8")
+    client = TestClient(create_app(Settings((tmp_path,))))
+
+    response = client.post(
+        "/api/duplicates/scan",
+        json={"path": str(tmp_path), "strategy": "filename"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["strategy"] == "filename"
+    assert payload["duplicate_groups"] == 1
+    assert payload["groups"][0]["files"][0]["path"]
+    assert payload["groups"][0]["confidence"] == "review"
