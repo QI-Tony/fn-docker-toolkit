@@ -15,19 +15,17 @@ def test_health_endpoint(tmp_path: Path) -> None:
     assert response.json() == {"status": "ok"}
 
 
-def test_all_pages_render(tmp_path: Path) -> None:
+def test_vue_single_page_app_renders_with_inlined_assets(tmp_path: Path) -> None:
     client = TestClient(create_app(Settings((tmp_path,))))
 
-    for url in ("/", "/tools/empty-directories", "/tools/duplicates"):
-        response = client.get(url)
-        assert response.status_code == 200
-        assert "NAS Toolbox" in response.text
-        assert "--primary: #176b5b" in response.text
-        assert "function appUrl" in response.text
+    response = client.get("/")
 
-    stylesheet = client.get("/static/style.css")
-    assert stylesheet.status_code == 200
-    assert stylesheet.headers["content-type"].startswith("text/css")
+    assert response.status_code == 200
+    assert "NAS Toolbox" in response.text
+    assert '<div id="app"></div>' in response.text
+    assert "<style" in response.text
+    assert "<script" in response.text
+    assert "/assets/" not in response.text
 
 
 def test_empty_directory_api_requires_scan_token_for_delete(tmp_path: Path) -> None:

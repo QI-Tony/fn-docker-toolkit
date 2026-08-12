@@ -1,5 +1,13 @@
 FROM ghcr.io/astral-sh/uv:0.9.18 AS uv
 
+FROM node:22-alpine AS frontend
+
+WORKDIR /src
+COPY frontend/package.json frontend/package-lock.json ./frontend/
+RUN npm --prefix frontend ci
+COPY frontend ./frontend
+RUN npm --prefix frontend run build
+
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -13,6 +21,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY app ./app
+COPY --from=frontend /src/app/frontend_dist ./app/frontend_dist
 
 EXPOSE 17701
 

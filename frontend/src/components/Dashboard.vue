@@ -1,0 +1,33 @@
+<template>
+  <section class="hero">
+    <p class="eyebrow">LOCAL FILE UTILITIES</p>
+    <h1>NAS Toolbox</h1>
+    <p>在浏览器中安全处理 NAS 文件。所有删除操作都需要先扫描、查看结果、再确认。</p>
+  </section>
+
+  <section>
+    <div class="section-heading">
+      <h2>文件工具</h2>
+      <span>2 个工具</span>
+    </div>
+    <div class="tool-grid">
+      <a class="tool-card" href="#/empty-directories">
+        <span class="tool-icon">⌫</span>
+        <div>
+          <h3>删除空文件夹</h3>
+          <p>扫描并删除指定目录中的空文件夹</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+
+      <a class="tool-card" href="#/duplicates">
+        <span class="tool-icon">≡</span>
+        <div>
+          <h3>重复文件检测</h3>
+          <p>使用文件大小和 MD5 查找并删除重复文件</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </section>
+</template>

@@ -1,6 +1,6 @@
 # NAS Toolbox
 
-NAS Toolbox 是一个面向 Linux NAS 的轻量 Web 文件工具箱。它使用 Python、FastAPI 和原生 HTML/CSS/JavaScript，默认通过 Docker 运行，不依赖数据库、Redis 或任务队列。
+NAS Toolbox 是一个面向 Linux NAS 的轻量 Web 文件工具箱。后端使用 Python 和 FastAPI，前端使用 Vue 3 与 Vite，默认通过 Docker 运行，不依赖数据库、Redis 或任务队列。
 
 删除操作始终遵循“扫描 → 查看结果 → 用户确认 → 删除”的流程。扫描结果仅短暂保存在当前进程内存中，30 分钟后自动失效，应用重启后也会失效。
 
@@ -80,10 +80,12 @@ Volume 决定“容器能看到什么”，`ALLOWED_ROOTS` 决定“Web 应用�
 
 ## 本地开发
 
-需要 Python 3.12+ 和 [uv](https://docs.astral.sh/uv/)。Linux/macOS 示例：
+需要 Python 3.12+、Node.js 22+ 和 [uv](https://docs.astral.sh/uv/)。先构建 Vue 前端，再启动 FastAPI。Linux/macOS 示例：
 
 ```bash
 uv sync
+npm --prefix frontend install
+npm --prefix frontend run build
 export ALLOWED_ROOTS=/tmp/nas-toolbox-data
 mkdir -p /tmp/nas-toolbox-data
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 17701
@@ -93,9 +95,20 @@ PowerShell：
 
 ```powershell
 uv sync
+npm --prefix frontend install
+npm --prefix frontend run build
 $env:ALLOWED_ROOTS = "D:\data"
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 17701
 ```
+
+开发前端时可以分别启动后端和 Vite 开发服务器：
+
+```bash
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 17701
+npm --prefix frontend run dev
+```
+
+Vite 开发页面位于 `http://localhost:5173`，并会将 `/api` 代理到 FastAPI。生产构建会把 Vue、JavaScript 和 CSS 内嵌到单个 HTML 文件中，以兼容 FN Connect 中继和带路径前缀的反向代理。
 
 运行测试：
 
@@ -129,10 +142,14 @@ nas-toolbox/
 │   ├── api/                 # HTTP 路由与请求模型
 │   ├── services/            # 空目录、重复文件等核心业务逻辑
 │   ├── utils/               # 路径安全和流式哈希等公共能力
-│   ├── templates/           # Jinja2 页面
-│   ├── static/              # 原生 CSS / JavaScript
+│   ├── frontend_dist/       # Vite 生成的单文件生产页面
 │   ├── config.py
 │   └── main.py              # 应用组装与路由注册
+├── frontend/
+│   ├── src/components/      # Vue 工具页面与共享组件
+│   ├── src/api.js           # 中继路径兼容的 API 客户端
+│   ├── src/App.vue
+│   └── vite.config.js
 ├── tests/
 ├── .github/workflows/docker.yml
 ├── Dockerfile
@@ -141,7 +158,7 @@ nas-toolbox/
 └── uv.lock
 ```
 
-API 只处理 HTTP 输入输出，Service 不依赖 FastAPI，便于单独测试；路径验证和哈希等可复用能力集中在 utils。
+API 只处理 HTTP 输入输出，Service 不依赖 FastAPI，便于单独测试；路径验证和哈希等可复用能力集中在 utils。Vue 前端通过 Hash 路由切换工具，因此反向代理不需要处理前端路由回退。
 
 ## Adding a New Tool
 
@@ -149,7 +166,7 @@ API 只处理 HTTP 输入输出，Service 不依赖 FastAPI，便于单独测试
 
 1. 在 `app/services/` 新增一个 service，例如 `file_search.py`，实现纯 Python 核心逻辑。所有用户路径必须调用 `app/utils/filesystem.py` 中的统一验证函数；危险操作要保持“预览后确认”。
 2. 在 `app/api/` 新增路由模块，定义请求/响应，将 HTTP 参数交给 service，并在 `app/main.py` 注册 router。
-3. 在 `app/templates/` 新增页面，在 `app/static/` 添加该页面需要的 JavaScript；在首页添加一张工具卡片。
+3. 在 `frontend/src/components/` 新增 Vue 工具组件，在 `App.vue` 注册 Hash 路由，并在 `Dashboard.vue` 添加工具卡片。网络请求统一复用 `frontend/src/api.js`，以保持 FN 中继路径兼容。
 4. 在 `tests/` 使用 `tmp_path` 为 service 和关键 API 添加测试，绝不依赖或修改真实 NAS 文件。
 5. 如果引入系统命令或额外权限，在 Dockerfile、Compose 和 README 中明确说明。不要让整个容器默认获得不必要的特权。
 
