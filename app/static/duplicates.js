@@ -60,7 +60,7 @@ duplicateForm.addEventListener("submit", async (event) => {
   const submit = duplicateForm.querySelector("button[type=submit]");
   submit.disabled = true;
   try {
-    const data = await postJson("/api/duplicates/scan", {
+    const data = await postJson(appUrl("api/duplicates/scan"), {
       path: document.querySelector("#path").value,
     });
     duplicateScanToken = data.scan_token;
@@ -94,7 +94,7 @@ duplicateDeleteButton.addEventListener("click", async () => {
   duplicateDeleteButton.disabled = true;
   setStatus(duplicateStatus, "正在重新验证文件并删除副本…");
   try {
-    const data = await postJson("/api/duplicates/delete", {
+    const data = await postJson(appUrl("api/duplicates/delete"), {
       scan_token: duplicateScanToken,
       selections,
     });

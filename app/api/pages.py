@@ -6,7 +6,17 @@ from fastapi.templating import Jinja2Templates
 
 
 router = APIRouter()
-templates = Jinja2Templates(directory=Path(__file__).resolve().parents[1] / "templates")
+app_path = Path(__file__).resolve().parents[1]
+templates = Jinja2Templates(directory=app_path / "templates")
+static_path = app_path / "static"
+templates.env.globals.update(
+    app_css=(static_path / "style.css").read_text(encoding="utf-8"),
+    common_js=(static_path / "common.js").read_text(encoding="utf-8"),
+    empty_directories_js=(static_path / "empty-directories.js").read_text(
+        encoding="utf-8"
+    ),
+    duplicates_js=(static_path / "duplicates.js").read_text(encoding="utf-8"),
+)
 
 
 @router.get("/", response_class=HTMLResponse)

@@ -22,6 +22,8 @@ def test_all_pages_render(tmp_path: Path) -> None:
         response = client.get(url)
         assert response.status_code == 200
         assert "NAS Toolbox" in response.text
+        assert "--primary: #176b5b" in response.text
+        assert "function appUrl" in response.text
 
     stylesheet = client.get("/static/style.css")
     assert stylesheet.status_code == 200

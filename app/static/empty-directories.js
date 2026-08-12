@@ -16,7 +16,7 @@ emptyForm.addEventListener("submit", async (event) => {
   const submit = emptyForm.querySelector("button[type=submit]");
   submit.disabled = true;
   try {
-    const data = await postJson("/api/empty-directories/scan", {
+    const data = await postJson(appUrl("api/empty-directories/scan"), {
       path: document.querySelector("#path").value,
     });
     emptyScanToken = data.scan_token;
@@ -46,7 +46,7 @@ emptyDeleteButton.addEventListener("click", async () => {
   emptyDeleteButton.disabled = true;
   setStatus(emptyStatus, "正在重新检查并删除空文件夹…");
   try {
-    const data = await postJson("/api/empty-directories/delete", {scan_token: emptyScanToken});
+    const data = await postJson(appUrl("api/empty-directories/delete"), {scan_token: emptyScanToken});
     emptyScanToken = null;
     emptyDeleteButton.classList.add("hidden");
     setStatus(emptyStatus, `已删除 ${data.deleted_count} 个空文件夹。`, "success");

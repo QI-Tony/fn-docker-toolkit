@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}重复文件检测 · NAS Toolbox{% endblock %}
 {% block content %}
-<a class="back-link" href="/">← 返回工具箱</a>
+<a class="back-link" href="../../" data-app-path="">← 返回工具箱</a>
 <section class="page-heading">
   <span class="tool-icon large">≡</span>
   <div>
@@ -32,4 +32,4 @@
   <div id="group-list"></div>
 </section>
 {% endblock %}
-{% block scripts %}<script src="/static/duplicates.js"></script>{% endblock %}
+{% block scripts %}<script>{{ duplicates_js | safe }}</script>{% endblock %}

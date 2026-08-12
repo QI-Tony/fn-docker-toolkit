@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}NAS Toolbox{% endblock %}</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <style>{{ app_css | safe }}</style>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/">
+    <a class="brand" href="/" data-app-path="">
       <span class="brand-mark">N</span>
       <span>NAS Toolbox</span>
     </a>
@@ -17,7 +17,7 @@
     {% block content %}{% endblock %}
   </main>
   <footer>NAS Toolbox · 轻量、可控的 NAS 文件工具</footer>
-  <script src="/static/common.js"></script>
+  <script>{{ common_js | safe }}</script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

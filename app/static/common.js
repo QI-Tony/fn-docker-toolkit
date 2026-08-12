@@ -1,3 +1,20 @@
+function appUrl(path = "") {
+  const pathname = window.location.pathname;
+  const toolsMarker = "/tools/";
+  const toolsIndex = pathname.lastIndexOf(toolsMarker);
+  let basePath;
+  if (toolsIndex >= 0) {
+    basePath = pathname.slice(0, toolsIndex + 1);
+  } else {
+    basePath = pathname.endsWith("/") ? pathname : `${pathname}/`;
+  }
+  return `${basePath}${path.replace(/^\/+/, "")}`;
+}
+
+document.querySelectorAll("[data-app-path]").forEach((link) => {
+  link.setAttribute("href", appUrl(link.dataset.appPath));
+});
+
 function formatBytes(bytes) {
   if (bytes === 0) return "0 B";
   const units = ["B", "KB", "MB", "GB", "TB"];
