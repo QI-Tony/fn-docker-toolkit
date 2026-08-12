@@ -1,0 +1,12 @@
+services:
+  nas-toolbox:
+    image: ${DOCKERHUB_USERNAME:-YOUR_DOCKERHUB_USERNAME}/nas-toolbox:latest
+    container_name: nas-toolbox
+    restart: unless-stopped
+    ports:
+      - "17701:17701"
+    volumes:
+      - /mnt:/mnt
+    environment:
+      - ALLOWED_ROOTS=/mnt
+      - TZ=Asia/Shanghai
